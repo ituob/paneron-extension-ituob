@@ -25,8 +25,9 @@ const Breadcrumbs: React.FC<BreadcrumbsProps> = function ({ crumbs, onNavigate }
 
 export const Crumb: React.FC<{ crumb: Crumb; onNavigate: () => void; }> = function ({ crumb, onNavigate }) {
   const crumbButtonProps: IButtonProps = {
-    disabled: !crumb.canNavigate,
+    icon: crumb.icon,
     text: crumb.label,
+    disabled: !crumb.canNavigate,
     onClick: onNavigate,
   };
   function invokeSiblingMenu() {
