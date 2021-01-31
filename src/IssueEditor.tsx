@@ -4,13 +4,13 @@ import { DatasetContext } from '@riboseinc/paneron-extension-kit/context';
 
 
 const IssueEditor: React.FC<{ objectPath: string }> = function ({ objectPath }) {
-  const issueID: number = parseInt(objectPath.replace('/issues/', ''), 10);
   const ctx = useContext(DatasetContext);
-  const issuePath = `issues/${issueID}`;
   const issueQueryResult = ctx.useObjectData({
-    objectPaths: [issuePath],
+    objectPaths: [objectPath],
   });
-  const issue: Issue | null = issueQueryResult.value.data[issuePath] as Issue | null;
+  const issue: Issue | null = issueQueryResult.value.data[objectPath] as Issue | null;
+
+  const issueID: number = parseInt(objectPath.replace('/issues/', ''), 10);
 
   if (issue) {
     return <>{issue.id}</>;
