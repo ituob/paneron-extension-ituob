@@ -1,8 +1,11 @@
 import { ValueHook } from '@riboseinc/paneron-extension-kit/types';
 import { RunningAnnex } from './types/running-annexes';
 import { OBIssue } from './types/issues';
+import useIssues from './useIssues';
+import useIssueData from './useIssueData';
 
 
+/** Given a list of issues */
 function getRunningAnnexes(fromIssues: OBIssue[], onlyForPublicationID?: string) {
   // Sort issues by ID newest to oldest
   const issues = [ ...fromIssues ].sort((a, b) => b.id - a.id);
@@ -37,17 +40,30 @@ function getRunningAnnexes(fromIssues: OBIssue[], onlyForPublicationID?: string)
 export default function useRunningAnnexes
 (issueID: number, pubID?: string):
 ValueHook<RunningAnnex[] | null> {
-  const pastIssueResp: ValueHook<OBIssue[]> = useIssueRange({ before: issueID + 1 });
+  // Find IDs for all actually existing issues up to and including the current one
+  const issueListResp = useIssues({ query: `obj.id <= ${issueID}` });
+  const issueIDs = Object.values(issueListResp.value.issueMeta).map(i => i.id);
+
+  // Retrieve data for those issues
+  const issueDataResp = useIssueData({ issueIDs });
+
+  const isUpdating = issueListResp.isUpdating || issueDataResp.isUpdating;
+
   let runningAnnexes: RunningAnnex[];
 
-  if (!pastIssueResp.isUpdating && pastIssueResp.value.length > 0) {
-    runningAnnexes = getRunningAnnexes(pastIssueResp.value, pubID);
+  if (!isUpdating && Object.keys(issueDataResp.value.issues).length > 0) {
+    const actualIssues: OBIssue[] =
+      Object.values(issueDataResp.value.issues).filter(v => v !== null) as OBIssue[];
+    runningAnnexes = getRunningAnnexes(actualIssues, pubID);
   } else {
     runningAnnexes = [];
   }
 
   return {
-    ...pastIssueResp,
+    isUpdating,
+    errors: [ ...issueListResp.errors, ...issueDataResp.errors ],
+    _reqCounter: issueListResp._reqCounter + issueDataResp._reqCounter,
+    refresh: issueListResp.refresh,
     value: runningAnnexes,
   };
 }
