@@ -5,7 +5,7 @@ import { OBIssue } from './types/issues';
 
 function getRunningAnnexes(fromIssues: OBIssue[], onlyForPublicationID?: string) {
   // Sort issues by ID newest to oldest
-  const issues = [ ...fromIssues ].sort((a, b) => a.id - b.id);
+  const issues = [ ...fromIssues ].sort((a, b) => b.id - a.id);
 
   var runningAnnexes: RunningAnnex[] = [];
 
